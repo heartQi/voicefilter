@@ -13,26 +13,27 @@ from model.embedder import SpeechEmbedder
 
 def main(args, hp):
     with torch.no_grad():
-        model = VoiceFilter(hp).cuda()
-        chkpt_model = torch.load(args.checkpoint_path)['model']
+        device = torch.device('cpu')
+        model = VoiceFilter(hp).to(device)
+        chkpt_model = torch.load(args.checkpoint_path, map_location=device)['model']
         model.load_state_dict(chkpt_model)
         model.eval()
 
-        embedder = SpeechEmbedder(hp).cuda()
-        chkpt_embed = torch.load(args.embedder_path)
+        embedder = SpeechEmbedder(hp).to(device)
+        chkpt_embed = torch.load(args.embedder_path, map_location=device)
         embedder.load_state_dict(chkpt_embed)
         embedder.eval()
 
         audio = Audio(hp)
         dvec_wav, _ = librosa.load(args.reference_file, sr=16000)
         dvec_mel = audio.get_mel(dvec_wav)
-        dvec_mel = torch.from_numpy(dvec_mel).float().cuda()
+        dvec_mel = torch.from_numpy(dvec_mel).float().to(device)
         dvec = embedder(dvec_mel)
         dvec = dvec.unsqueeze(0)
 
         mixed_wav, _ = librosa.load(args.mixed_file, sr=16000)
         mag, phase = audio.wav2spec(mixed_wav)
-        mag = torch.from_numpy(mag).float().cuda()
+        mag = torch.from_numpy(mag).float().to(device)
 
         mag = mag.unsqueeze(0)
         mask = model(mag, dvec)
