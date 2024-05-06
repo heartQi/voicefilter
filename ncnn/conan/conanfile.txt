@@ -1,0 +1,6 @@
+[requires]
+ ncnn/1.0.1@mthor/stable
+
+[generators]
+ cmake_find_package
+ 
