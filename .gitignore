@@ -1,0 +1,7 @@
+*.pyc
+*.wav
+*.data
+*.txt
+*.pt
+/chkpt/
+/devc/

@@ -9,18 +9,9 @@ from utils.audio import Audio
 from utils.hparams import HParam
 from model.model import VoiceFilter
 #from model.modelmosformer import VoiceFilter
-#from model.modelmish import VoiceFilter
-#from model.modeleis import VoiceFilter
-#from model.modelsnake import VoiceFilter
-
 from model.embedder import SpeechEmbedder
 
-def dump_mel(dvec, path):
-   with open(path, "w") as file:
-       # 将数据按行写入文件
-       for value in dvec:
-           # 将每个值转换为字符串，并写入文件，格式为 "tensor(0.0240)"
-           file.write("tensor({:.18f})\n".format(value.item()))
+
 def main(args, hp):
     with torch.no_grad():
         device = torch.device('cpu')
@@ -35,42 +26,14 @@ def main(args, hp):
         embedder.eval()
 
         audio = Audio(hp)
-
-        if 1:
-            dvec_wav, _ = librosa.load(args.reference_file, sr=16000)
-
-        else:
-            import scipy.io.wavfile as wavfile
-            import numpy as np
-            fs_wavfile, dvec_wav = wavfile.read(args.reference_file)
-            dvec_wav = dvec_wav.astype(np.float32)
-
+        dvec_wav, _ = librosa.load(args.reference_file, sr=16000)
         dvec_mel = audio.get_mel(dvec_wav)
         dvec_mel = torch.from_numpy(dvec_mel).float().to(device)
         dvec = embedder(dvec_mel)
         dvec = dvec.unsqueeze(0)
-        dump_mel(dvec[0, :], "./dvec_rc_win_admin.data")
 
-
-        if 1:
-            mixed_wav, _ = librosa.load(args.mixed_file, sr=16000)
-            mag, phase = audio.wav2spec(mixed_wav)
-        else:
-            n_fft = 512
-            hop_length = 160
-            win_length = 256
-            fs_wavfile, mixed_wav = wavfile.read(args.mixed_file)
-            mixed_wav = mixed_wav.astype(np.float32)
-            #fft_result = np.fft.fft(mixed_wav)
-            fft_result = np.array(
-                [np.fft.fft(mixed_wav[i:i + win_length], n_fft) for i in range(0, len(mixed_wav) - win_length, hop_length)])
-
-            # 获取振幅谱
-            mag = np.abs(fft_result)[:, :n_fft // 2 + 1]
-
-            # 获取相位谱
-            phase = np.angle(fft_result)[:, :n_fft // 2 + 1]
-
+        mixed_wav, _ = librosa.load(args.mixed_file, sr=16000)
+        mag, phase = audio.wav2spec(mixed_wav)
         mag = torch.from_numpy(mag).float().to(device)
 
         if 0:

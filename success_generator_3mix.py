@@ -153,7 +153,7 @@ if __name__ == '__main__':
         mix(hp, args, audio, num, s1_dvec, s1_target, s2, s3, train=True)
 
     def test_wrapper(num, hp, args, audio, test_spk):
-        spk1, spk2, spk3 = random.sample(test_spk, 2)
+        spk1, spk2, spk3 = random.sample(test_spk, 3)
         s1_dvec, s1_target = random.sample(spk1, 2)
         s2 = random.choice(spk2)
         s3 = random.choice(spk3)
